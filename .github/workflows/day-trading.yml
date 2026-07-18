@@ -1,19 +1,22 @@
-name: Day Trading Bot
+name: Day Trading Bot - Thailand Timezone
 
 on:
   schedule:
-    # Check every 2 hours during market hours (9 AM - 8 PM Thailand)
-    - cron: '0 2,4,6,8,10,12,14 * * *'
+    - cron: '0 2 * * *'
+    - cron: '0 4 * * *'
+    - cron: '0 6 * * *'
+    - cron: '0 8 * * *'
+    - cron: '0 10 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 14 * * *'
   workflow_dispatch:
 
 jobs:
-  day-trading:
+  day-trading-bot:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
-    
-    - uses: actions/setup-python@v5
     
     - name: Set up Python
       uses: actions/setup-python@v4
