@@ -33,6 +33,6 @@ jobs:
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         CHAT_ID: ${{ secrets.CHAT_ID }}
       run: |
-     cd Day_Trading
-     python day_trading_bot.py
+        cd Day_Trading
+        python day_trading_bot.py
 
