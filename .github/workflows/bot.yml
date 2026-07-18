@@ -1,25 +1,39 @@
-name: Trading Bot
+name: Trading Alerts Scheduler
 
 on:
   schedule:
-    - cron: '0 2 * * 1-5'
+    # Daily portfolio summary - 9:00 AM Thailand (UTC+7)
+    - cron: '0 2 * * *'
+    # Price alert - 1:00 PM Thailand
+    - cron: '0 6 * * *'
+    # Price alert - 5:00 PM Thailand
+    - cron: '0 10 * * *'
+    # Price alert - 9:00 PM Thailand
+    - cron: '0 14 * * *'
+    # Weekly portfolio review - Monday 10:00 AM Thailand
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
 
 jobs:
-  bot:
+  trading-alerts:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
     
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install yfinance requests
+        pip install requests
     
-    - name: Run bot
-      run: python bot.py
+    - name: Run trading alerts
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+      run: python telegram_alerts.py
