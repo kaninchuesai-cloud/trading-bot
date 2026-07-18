@@ -42,8 +42,14 @@ TAKE_PROFIT_PERCENT = 3.0
 STOP_LOSS_PERCENT = 5.0
 
 # Initialize Binance client
-client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY, testnet=True, tld='us')
-
+# Initialize Binance client with fallback
+client = None
+try:
+        client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY, testnet=True, tld='us')
+except Exception as e:
+        print(f"⚠️ Binance API connection failed: {e}")
+        print("⚠️ Switching to mock paper trading mode")
+        client = None
 class TradingBot:
     def __init__(self):
         self.paper_trading = PAPER_TRADING
