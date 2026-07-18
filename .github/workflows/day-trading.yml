@@ -32,4 +32,6 @@ jobs:
       env:
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         CHAT_ID: ${{ secrets.CHAT_ID }}
-      run: python Day_Trading/day_trading_bot.py
+      run: |
+     cd Day_Trading
+     python day_trading_bot.py
