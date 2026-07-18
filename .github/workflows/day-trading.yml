@@ -35,3 +35,4 @@ jobs:
       run: |
      cd Day_Trading
      python day_trading_bot.py
+
