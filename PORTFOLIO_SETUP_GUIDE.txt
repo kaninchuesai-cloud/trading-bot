@@ -1,0 +1,147 @@
+
+╔════════════════════════════════════════════════════════════╗
+║         PORTFOLIO 10K - GOOGLE SHEETS SETUP GUIDE          ║
+╚════════════════════════════════════════════════════════════╝
+
+📋 STEP 1: ADD FORMULAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Core Holdings Section (Rows 5-8):
+  Column E (Total Cost):     =C5*D5
+  Column G (Current Value):  =F5*D5
+  Column H (Gain/Loss):      =G5-E5
+  Column I (Gain %):         =IF(E5=0,0,H5/E5)
+
+Then COPY formulas down for rows 6,7,8
+
+Trading Section (Rows 13-14):
+  Column E (Total Cost):     =C13*D13
+  Column G (Current Value):  =F13*D13
+  Column H (Gain/Loss):      =G13-E13
+  Column I (Gain %):         =IF(E13=0,0,H13/E13)
+
+Then COPY formulas down for row 14
+
+Total Rows:
+  E9 (Core Total):     =SUM(E5:E8)
+  G9 (Value Total):    =SUM(G5:G8)
+  H9 (Gain Total):     =SUM(H5:H8)
+  
+  E15 (Trading Total): =SUM(E13:E14)
+  G15 (Value Total):   =SUM(G13:G14)
+  H15 (Gain Total):    =SUM(H13:H14)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 STEP 2: APPLY FORMATTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HEADER ROW (Row 1):
+  ✓ Font: Bold, Size 16
+  ✓ Color: Dark Blue (#1F4E78)
+  ✓ Text: White
+  ✓ Merge cells: A1:K1
+
+SECTION HEADERS (Rows 3, 11):
+  ✓ Font: Bold, Size 12, White
+  ✓ Background: Blue (#4472C4)
+  ✓ Merge: Full width
+
+COLUMN HEADERS (Rows 4, 12):
+  ✓ Font: Bold, White
+  ✓ Background: Light Blue (#5B9BD5)
+  ✓ Center align
+  ✓ Wrap text
+
+DATA ROWS (5-8, 13-14):
+  ✓ Border: All cells
+  ✓ Number Format: 
+    - Prices/Amounts: #,##0.00
+    - Percentages: 0.0%
+
+TOTAL ROWS (9, 15, 22):
+  ✓ Font: Bold
+  ✓ Background: Yellow (#FFC000)
+  ✓ Number Format: #,##0.00
+
+SUMMARY SECTION (Rows 18-22):
+  ✓ Headers: Bold, Gray background
+  ✓ Values: #,##0.00 format
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎨 STEP 3: COLUMN WIDTHS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A: 18  (Asset Type)
+B: 12  (Ticker)
+C: 14  (Entry Price)
+D: 12  (Quantity)
+E: 14  (Total Cost)
+F: 14  (Current Price)
+G: 14  (Current Value)
+H: 16  (Gain/Loss)
+I: 10  (Gain %)
+J: 14  (Target Price)
+K: 12  (Action/Stop Loss)
+
+Steps in Google Sheets:
+  1. Highlight column
+  2. Right-click → Resize column
+  3. Enter width
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 4: FREEZE & FINALIZE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Freeze Rows:
+  1. Click cell A5
+  2. View → Freeze → 4 rows
+  
+This way headers stay visible when scrolling
+
+Format Numbers (Select columns):
+  - E, F, G, H: Format as Number (2 decimals)
+  - I: Format as Percentage (1 decimal)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 QUICK CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Core Holdings:
+  ☐ Formulas added (E, G, H, I for rows 5-8)
+  ☐ Totals calculated (Row 9)
+  ☐ Formatted with borders
+  ☐ Numbers show 2 decimals
+
+Trading Positions:
+  ☐ Formulas added (E, G, H, I for rows 13-14)
+  ☐ Totals calculated (Row 15)
+  ☐ Formatted with borders
+  ☐ Numbers show 2 decimals
+
+Styling:
+  ☐ Headers colored (Blue #4472C4)
+  ☐ Totals highlighted (Yellow #FFC000)
+  ☐ Column widths adjusted
+  ☐ Rows frozen (4 rows)
+  ☐ Percentages format: 0.0%
+
+Summary:
+  ☐ Portfolio % calculations working
+  ☐ All totals auto-updating
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Double-click cell border to auto-fit column width
+• Use Ctrl+` (backtick) to toggle formula view
+• Conditional formatting: Format → Conditional formatting
+  → Highlight green if Gain/Loss > 0, red if < 0
+• Add a chart: Insert → Chart (for portfolio pie chart)
+
+═════════════════════════════════════════════════════════════
