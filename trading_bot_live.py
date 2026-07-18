@@ -205,9 +205,6 @@ class TradingBot:
                     # Get current price
                     if client is not None:
                         try:
-                            ticker = client.get_symbol_info(symbol)
-                            if not ticker:
-                                continue
                             current_price = float(client.get_symbol_ticker(symbol=symbol)['price'])
                         except Exception:
                             print(f"⚠️ Skipping {symbol} - API unavailable")
