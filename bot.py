@@ -12,13 +12,23 @@ def alert(msg):
     try:
         requests.post("https://api.telegram.org/bot" + TOKEN + "/sendMessage", 
                      data={"chat_id": CHAT_ID, "text": msg})
-        print("SENT")
     except:
         pass
 
-print("\n" + "="*50)
-print("BOT TRADING")
-print("="*50 + "\n")
+def calc_macd(closes, fast=12, slow=26, signal=9):
+    """Calculate MACD"""
+    ema_fast = sum(closes[-fast:]) / fast
+    ema_slow = sum(closes[-slow:]) / slow
+    macd_line = ema_fast - ema_slow
+    return macd_line
+
+def calc_ema(closes, period):
+    """Calculate EMA"""
+    return sum(closes[-period:]) / period
+
+print("\n" + "="*60)
+print("BOT TRADING - MULTIPLE SIGNALS")
+print("="*60 + "\n")
 
 res = ""
 ok = False
@@ -33,17 +43,19 @@ for sym, name in WATCH.items():
             continue
         
         if isinstance(df.columns, type(df.columns)):
-            close_data = df['Close'].iloc[:, 0].values
+            closes = df['Close'].iloc[:, 0].values
+            volumes = df.iloc[:, -1].iloc[:, 0].values if 'Volume' in str(df.columns) else None
         else:
-            close_data = df['Close'].values
+            closes = df['Close'].values
+            volumes = df['Volume'].values if 'Volume' in df.columns else None
         
-        price = float(close_data[-1])
+        price = float(closes[-1])
         
-        up = 0.0
-        dn = 0.0
-        for i in range(len(close_data)-14, len(close_data)):
+        # 1. RSI
+        up = dn = 0.0
+        for i in range(len(closes)-14, len(closes)):
             if i > 0:
-                d = close_data[i] - close_data[i-1]
+                d = closes[i] - closes[i-1]
                 if d > 0:
                     up += d
                 else:
@@ -53,29 +65,50 @@ for sym, name in WATCH.items():
         rd = dn / 14.0
         rsi = 100.0 - (100.0 / (1.0 + ru/rd)) if rd > 0 else 50.0
         
-        sig = ""
-        if rsi < 30:
-            sig = "BUY"
-            ok = True
-        elif rsi > 70:
-            sig = "SELL"
-            ok = True
+        # 2. EMA
+        ema20 = calc_ema(closes, 20)
+        ema50 = calc_ema(closes, 50)
         
-        print(str(round(price, 2)) + " RSI:" + str(round(rsi, 1)) + " " + sig)
+        # 3. MACD
+        macd = calc_macd(closes, 12, 26, 9)
+        
+        # 4. Volume trend
+        vol_up = volumes[-1] > volumes[-5] if volumes is not None else False
+        
+        # Signals
+        rsi_sig = (rsi < 30) or (rsi > 70)
+        ema_sig = ema20 > ema50
+        macd_sig = macd > 0
+        
+        # Need 2+ confirmations
+        confirmations = sum([rsi_sig, ema_sig, macd_sig])
+        
+        sig = ""
+        if confirmations >= 2:
+            if (rsi < 30 or (rsi < 50 and macd_sig and ema_sig)):
+                sig = "BUY"
+                ok = True
+            elif (rsi > 70 or (rsi > 50 and not macd_sig and not ema_sig)):
+                sig = "SELL"
+                ok = True
+        
+        detail = "RSI:" + str(round(rsi, 1)) + " EMA:" + ("UP" if ema_sig else "DN") + " MACD:" + ("+" if macd_sig else "-")
+        print("$" + str(round(price, 2)) + " " + detail + " " + sig)
         
         if sig:
             res += sig + " " + name + " $" + str(round(price, 2)) + "\n"
+            res += "  RSI:" + str(round(rsi, 1)) + " | EMA20>50:" + str(ema_sig) + " | MACD:" + str(round(macd, 4)) + "\n"
     
-    except Exception as e:
+    except:
         print("ERR")
     
     time.sleep(1)
 
-print("\n" + "="*50)
+print("\n" + "="*60)
 if ok:
-    msg = "SIGNALS " + datetime.now().strftime('%H:%M:%S') + "\n\n" + res
+    msg = "SIGNALS (Multiple Confirmation)\n" + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n\n" + res
     alert(msg)
-    print("SIGNALS FOUND & SENT")
+    print("SIGNALS SENT")
 else:
     print("NO SIGNALS")
-print("="*50 + "\n")
+print("="*60 + "\n")
