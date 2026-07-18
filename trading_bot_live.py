@@ -42,7 +42,7 @@ TAKE_PROFIT_PERCENT = 3.0
 STOP_LOSS_PERCENT = 5.0
 
 # Initialize Binance client
-client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY, testnet=True)
+client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY, testnet=True, tld='us')
 
 class TradingBot:
     def __init__(self):
