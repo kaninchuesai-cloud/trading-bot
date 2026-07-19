@@ -78,7 +78,7 @@ MACD_SIGNAL = 9
 
 STATE_FILE = os.getenv("STATE_FILE", "state.json")
 # After this UTC time the bot closes everything and stops trading.
-STOP_DATE = os.getenv("STOP_DATE", "2026-07-21T00:00:00")
+STOP_DATE = os.getenv("STOP_DATE", "2099-01-01T00:00:00")  # run until manually stopped
 
 
 # --------------------------------------------------------------------------- #
