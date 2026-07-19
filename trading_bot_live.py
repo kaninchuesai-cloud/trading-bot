@@ -42,6 +42,22 @@ ASSETS = {
     "NG": "natural_gas",
 }
 
+# Per-asset display icons (crypto logos, metals, oil/gas, forex flags)
+ICONS = {
+    "BTCUSDT": "₿",        # Bitcoin
+    "ETHUSDT": "Ξ",        # Ethereum
+    "XAUUSD": "🥇",        # Gold
+    "XAGUSD": "🥈",        # Silver
+    "EURUSD": "🇪🇺🇺🇸",     # Euro / US Dollar
+    "GBPUSD": "🇬🇧🇺🇸",     # British Pound / US Dollar
+    "CL": "🛢️",           # Crude Oil
+    "NG": "🔥",            # Natural Gas
+}
+
+
+def asset_icon(sym):
+    return ICONS.get(sym, "•")
+
 START_BALANCE = float(os.getenv("ACCOUNT_SIZE", "1000"))
 RISK_PER_TRADE = float(os.getenv("RISK_PER_TRADE", "0.03"))    # 3% of cash per trade (scalp small)
 
@@ -278,9 +294,10 @@ def evaluate(display_symbol, closes, state):
     macd_line, macd_signal, macd_hist = macd(closes)
 
     if r is None or ma20 is None or ma50 is None or macd_line is None:
-        return f"{display_symbol}: not enough data"
+        return f"{asset_icon(display_symbol)} {display_symbol}  —  not enough data"
 
     trend = "UP" if ma20 > ma50 else "DOWN"
+    icon = asset_icon(display_symbol)
     pos = state["positions"].get(display_symbol)
 
     # ---- Exit logic (if holding) ----
@@ -312,12 +329,12 @@ def evaluate(display_symbol, closes, state):
                 f"Exit: ${price:,.2f}\n{emoji} P&L: ${pnl:,.2f} ({pnl_pct:+.2f}%)\n"
                 f"Cash: ${state['balance']:,.2f}"
             )
-            return (f"🔴 {display_symbol}  —  ${price:,.2f}\n"
+            return (f"{icon} {display_symbol}  —  ${price:,.2f}\n"
                     f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
-                    f"    ✅ SOLD")
-        return (f"💰 {display_symbol}  —  ${price:,.2f}\n"
+                    f"    🔴 SOLD")
+        return (f"{icon} {display_symbol}  —  ${price:,.2f}\n"
                 f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
-                f"    HOLD ({pnl_pct:+.1f}%)")
+                f"    💰 HOLD ({pnl_pct:+.1f}%)")
 
     # ---- Entry logic (if flat) ----
     # SCALPING: confluence of RSI + MA20 + MACD histogram
@@ -348,9 +365,9 @@ def evaluate(display_symbol, closes, state):
             f"Support ${support:,.0f} / Resistance ${resistance:,.0f}\n"
             f"Cash: ${state['balance']:,.2f}"
         )
-        return (f"🟢 {display_symbol}  —  ${price:,.2f}\n"
+        return (f"{icon} {display_symbol}  —  ${price:,.2f}\n"
                 f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
-                f"    ✅ BOUGHT")
+                f"    🟢 BOUGHT")
 
     # No action - explain why (which condition blocked entry)
     miss = []
@@ -360,9 +377,9 @@ def evaluate(display_symbol, closes, state):
         miss.append("no pullback to MA20")
     if not cond_macd:
         miss.append(f"MACD {macd_hist:+.4f}≤0")
-    return (f"⏳ {display_symbol}  —  ${price:,.2f}\n"
+    return (f"{icon} {display_symbol}  —  ${price:,.2f}\n"
             f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
-            f"    wait: {' , '.join(miss)}")
+            f"    ⏳ wait: {' , '.join(miss)}")
 
 
 # --------------------------------------------------------------------------- #
@@ -423,7 +440,7 @@ def main():
     for sym, gid in ASSETS.items():
         closes, source = fetch_hourly_closes(sym, gid)
         if not closes:
-            status_lines.append(f"⚠️ {sym}  —  price fetch failed")
+            status_lines.append(f"{asset_icon(sym)} {sym}  —  ⚠️ price fetch failed")
             continue
         last_prices[sym] = closes[-1]
         if stop:
