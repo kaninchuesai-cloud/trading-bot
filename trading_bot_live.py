@@ -422,6 +422,13 @@ def main():
         if weekly:
             send_telegram(weekly)
 
+    # Send test report every 3 hours (for demo/testing)
+    if state['runs'] % 3 == 0:
+        test_summary = gen_weekly_summary(state)
+        if test_summary:
+            test_msg = f"📊 <b>TEST REPORT (Run #{state['runs']})</b>\n{test_summary}"
+            send_telegram(test_msg)
+
     save_state(state)
 
 
