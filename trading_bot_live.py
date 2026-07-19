@@ -93,10 +93,12 @@ def _get(url):
 
 def fetch_hourly_closes(display_symbol, gecko_id):
     """Try several free, no-key sources so at least one works on the runner.
-    Supports: Crypto (BTC/ETH), Metals (XAU/XAG), Forex (EUR/GBP), Commodities (CL/NG)
+    Crypto -> CoinGecko/Kraken/Coinbase; Metals/Forex/Commodities -> Yahoo Finance.
     """
+    crypto = display_symbol in ("BTCUSDT", "ETHUSDT")
+
     # 1) CoinGecko (price series for Crypto only)
-    if gecko_id and gecko_id not in ["gold", "silver", "eur_usd", "gbp_usd", "crude_oil", "natural_gas"]:
+    if crypto:
         try:
             d = _get(f"https://api.coingecko.com/api/v3/coins/{gecko_id}"
                      f"/market_chart?vs_currency=usd&days=5")
@@ -109,31 +111,52 @@ def fetch_hourly_closes(display_symbol, gecko_id):
         except Exception as e:
             print(f"CoinGecko failed ({display_symbol}): {e}")
 
-    # 2) Kraken OHLC (hourly). Supports: BTC, ETH, Gold, Silver, Forex, Oil
+    # 2) Yahoo Finance (hourly) -> Gold, Silver, Oil, Gas, Forex (+ crypto fallback)
+    yahoo_map = {
+        "BTCUSDT": "BTC-USD", "ETHUSDT": "ETH-USD",
+        "XAUUSD": "GC=F",   # Gold futures
+        "XAGUSD": "SI=F",   # Silver futures
+        "EURUSD": "EURUSD=X",
+        "GBPUSD": "GBPUSD=X",
+        "CL": "CL=F",       # Crude Oil (WTI) futures
+        "NG": "NG=F",       # Natural Gas futures
+    }
+    ysym = yahoo_map.get(display_symbol)
+    if ysym:
+        try:
+            import urllib.parse
+            q = urllib.parse.quote(ysym)
+            d = _get(f"https://query1.finance.yahoo.com/v8/finance/chart/{q}"
+                     f"?interval=1h&range=5d")
+            result = d["chart"]["result"][0]
+            closes = [c for c in result["indicators"]["quote"][0]["close"]
+                      if c is not None]
+            if len(closes) >= MACD_SLOW + 2:
+                return closes, "Yahoo"
+        except Exception as e:
+            print(f"Yahoo failed ({display_symbol}): {e}")
+
+    # 3) Kraken OHLC (hourly). Crypto + EUR/GBP forex fallback
     try:
-        # Map our symbols to Kraken pairs
         kraken_pairs = {
             "BTCUSDT": "XBTUSD",
             "ETHUSDT": "ETHUSD",
-            "XAUUSD": "XAUUSD",
-            "XAGUSD": "XAGUSD",
             "EURUSD": "EURUSD",
             "GBPUSD": "GBPUSD",
-            "CL": "CLUSD",      # Crude Oil (WTI)
-            "NG": "NGUSD",      # Natural Gas
         }
-        pair = kraken_pairs.get(display_symbol, display_symbol)
-        d = _get(f"https://api.kraken.com/0/public/OHLC?pair={pair}&interval=60")
-        result = d["result"]
-        key = [k for k in result if k != "last"][0]
-        closes = [float(c[4]) for c in result[key]]
-        if len(closes) >= MACD_SLOW + 2:
-            return closes, "Kraken"
+        pair = kraken_pairs.get(display_symbol)
+        if pair:
+            d = _get(f"https://api.kraken.com/0/public/OHLC?pair={pair}&interval=60")
+            result = d["result"]
+            key = [k for k in result if k != "last"][0]
+            closes = [float(c[4]) for c in result[key]]
+            if len(closes) >= MACD_SLOW + 2:
+                return closes, "Kraken"
     except Exception as e:
         print(f"Kraken failed ({display_symbol}): {e}")
 
-    # 3) Coinbase candles (hourly, for BTC/ETH only, newest first -> reverse)
-    if "BTC" in display_symbol or "ETH" in display_symbol:
+    # 4) Coinbase candles (hourly, for BTC/ETH only, newest first -> reverse)
+    if crypto:
         try:
             prod = "BTC-USD" if "BTC" in display_symbol else "ETH-USD"
             d = _get(f"https://api.exchange.coinbase.com/products/{prod}"
