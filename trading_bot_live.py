@@ -1,14 +1,15 @@
 """
 Paper-Trading Bot on REAL market data (forward test).
 
-Strategy: RSI + Moving Averages + Support/Resistance
+Strategy: SCALPING (RSI + Quick MA20)
   * Data: real hourly BTC/ETH prices (CoinGecko -> Kraken -> Coinbase fallback)
   * One evaluation per run (designed to be run hourly by GitHub Actions cron)
   * Persistent state in state.json so P&L accumulates across runs
   * Telegram report every run; prominent alerts on BUY/SELL
+  * HIGH FREQUENCY: small stops, small targets, small position size per trade
 
 This is PAPER trading: no real orders are placed. It simulates trades against
-real prices so we can see whether the rules would have made or lost money.
+real prices so we can see whether the scalping rules would have made or lost money.
 """
 
 import os
@@ -27,17 +28,17 @@ CHAT_ID = os.getenv("CHAT_ID")
 ASSETS = {"BTCUSDT": "bitcoin", "ETHUSDT": "ethereum"}
 
 START_BALANCE = float(os.getenv("ACCOUNT_SIZE", "1000"))
-RISK_PER_TRADE = float(os.getenv("RISK_PER_TRADE", "0.1"))    # 10% of cash per trade
+RISK_PER_TRADE = float(os.getenv("RISK_PER_TRADE", "0.03"))    # 3% of cash per trade (scalp small)
 
-# Strategy thresholds
+# Strategy thresholds (SCALPING: frequent tiny wins)
 RSI_PERIOD = 14
-RSI_BUY = float(os.getenv("RSI_BUY", "38"))      # oversold entry
-RSI_SELL = float(os.getenv("RSI_SELL", "68"))    # overbought exit
-NEAR_SUPPORT = float(os.getenv("NEAR_SUPPORT", "0.02"))   # within 2% of MA20/support
-NEAR_RESIST = float(os.getenv("NEAR_RESIST", "0.01"))     # within 1% of resistance
-TAKE_PROFIT = float(os.getenv("TAKE_PROFIT", "4.0"))      # +4%
-STOP_LOSS = float(os.getenv("STOP_LOSS", "3.0"))         # -3%
-SR_LOOKBACK = int(os.getenv("SR_LOOKBACK", "48"))        # candles for support/resistance
+RSI_BUY = float(os.getenv("RSI_BUY", "50"))      # NOT oversold; more neutral entry
+RSI_SELL = float(os.getenv("RSI_SELL", "60"))    # early exit on momentum
+NEAR_SUPPORT = float(os.getenv("NEAR_SUPPORT", "0.01"))   # within 1% of MA20/support (tighter)
+NEAR_RESIST = float(os.getenv("NEAR_RESIST", "0.005"))    # within 0.5% of resistance (scalp exit)
+TAKE_PROFIT = float(os.getenv("TAKE_PROFIT", "1.5"))      # +1.5% target
+STOP_LOSS = float(os.getenv("STOP_LOSS", "1.0"))         # -1% stop (quick cut)
+SR_LOOKBACK = int(os.getenv("SR_LOOKBACK", "24"))        # candles for support/resistance (shorter window)
 
 STATE_FILE = os.getenv("STATE_FILE", "state.json")
 # After this UTC time the bot closes everything and stops trading.
@@ -212,7 +213,7 @@ def evaluate(display_symbol, closes, state):
             del state["positions"][display_symbol]
             emoji = "✅" if pnl >= 0 else "🔻"
             send_telegram(
-                f"🔴 SELL {display_symbol} ({reason})\n"
+                f"🔴 SCALP EXIT {display_symbol} ({reason})\n"
                 f"Exit: ${price:,.2f}\n{emoji} P&L: ${pnl:,.2f} ({pnl_pct:+.2f}%)\n"
                 f"Cash: ${state['balance']:,.2f}"
             )
@@ -222,13 +223,14 @@ def evaluate(display_symbol, closes, state):
                 f"MA20 {ma20:,.0f}/{ma50:,.0f} {trend} | HOLD ({pnl_pct:+.1f}%)")
 
     # ---- Entry logic (if flat) ----
-    cond_rsi = r < RSI_BUY
-    cond_trend = ma20 > ma50                 # uptrend STRUCTURE (buy dips in uptrend)
-    # Pullback to dynamic support (price at/near MA20), or price near the
-    # static support level - either counts as a good entry zone.
+    # SCALPING: looser entry conditions - more frequent trades
+    # RSI near neutral (50) is OK for scalp; prefer price at/near MA20
+    cond_rsi = r < RSI_BUY              # RSI < 50 (not overbought)
     cond_support = (price <= ma20 * (1 + NEAR_SUPPORT)
                     or price <= support * (1 + NEAR_SUPPORT))
-    if cond_rsi and cond_trend and cond_support:
+    # Scalp: enter on ANY pullback to MA20, not just uptrend (MA20>MA50)
+    # Optional: still prefer uptrend but not required
+    if cond_rsi and cond_support:
         amount = (state["balance"] * RISK_PER_TRADE) / price
         cost = amount * price
         state["balance"] -= cost
@@ -239,13 +241,14 @@ def evaluate(display_symbol, closes, state):
         state["trades"].append({
             "symbol": display_symbol, "side": "BUY", "price": price,
             "amount": amount, "pnl": 0.0, "pnl_pct": 0.0,
-            "reason": f"RSI {r:.0f} + uptrend + near support",
+            "reason": f"SCALP: RSI {r:.0f} + pullback to MA20",
             "time": datetime.now(timezone.utc).isoformat(),
         })
         send_telegram(
-            f"🟢 BUY {display_symbol}\n"
-            f"Reason: RSI {r:.0f} oversold + {trend}trend + near support\n"
+            f"🟢 SCALP BUY {display_symbol}\n"
+            f"Reason: RSI {r:.0f} + near MA20 pullback\n"
             f"Price: ${price:,.2f}\nSize: {amount:.5f}\n"
+            f"Target: +{TAKE_PROFIT:.1f}% | Stop: -{STOP_LOSS:.1f}%\n"
             f"Support ${support:,.0f} / Resistance ${resistance:,.0f}\n"
             f"Cash: ${state['balance']:,.2f}"
         )
@@ -256,8 +259,6 @@ def evaluate(display_symbol, closes, state):
     miss = []
     if not cond_rsi:
         miss.append(f"RSI {r:.0f}≥{RSI_BUY:.0f}")
-    if not cond_trend:
-        miss.append("downtrend (MA20<MA50)")
     if not cond_support:
         miss.append("above MA20 (no pullback)")
     return (f"{display_symbol} ${price:,.2f} | RSI {r:.0f} | "
