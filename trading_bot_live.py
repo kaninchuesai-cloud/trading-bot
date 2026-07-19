@@ -312,10 +312,12 @@ def evaluate(display_symbol, closes, state):
                 f"Exit: ${price:,.2f}\n{emoji} P&L: ${pnl:,.2f} ({pnl_pct:+.2f}%)\n"
                 f"Cash: ${state['balance']:,.2f}"
             )
-            return (f"{display_symbol} ${price:,.2f} | RSI {r:.0f} | "
-                    f"MA20 {ma20:,.0f}/{ma50:,.0f} {trend} | MACD {macd_hist:+.4f} | SOLD")
-        return (f"{display_symbol} ${price:,.2f} | RSI {r:.0f} | "
-                f"MA20 {ma20:,.0f}/{ma50:,.0f} {trend} | MACD {macd_hist:+.4f} | HOLD ({pnl_pct:+.1f}%)")
+            return (f"🔴 {display_symbol}  —  ${price:,.2f}\n"
+                    f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
+                    f"    ✅ SOLD")
+        return (f"💰 {display_symbol}  —  ${price:,.2f}\n"
+                f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
+                f"    HOLD ({pnl_pct:+.1f}%)")
 
     # ---- Entry logic (if flat) ----
     # SCALPING: confluence of RSI + MA20 + MACD histogram
@@ -346,19 +348,21 @@ def evaluate(display_symbol, closes, state):
             f"Support ${support:,.0f} / Resistance ${resistance:,.0f}\n"
             f"Cash: ${state['balance']:,.2f}"
         )
-        return (f"{display_symbol} ${price:,.2f} | RSI {r:.0f} | "
-                f"MA20 {ma20:,.0f}/{ma50:,.0f} {trend} | MACD {macd_hist:+.4f} | BOUGHT")
+        return (f"🟢 {display_symbol}  —  ${price:,.2f}\n"
+                f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
+                f"    ✅ BOUGHT")
 
     # No action - explain why (which condition blocked entry)
     miss = []
     if not cond_rsi:
         miss.append(f"RSI {r:.0f}≥{RSI_BUY:.0f}")
     if not cond_support:
-        miss.append("above MA20 (no pullback)")
+        miss.append("no pullback to MA20")
     if not cond_macd:
-        miss.append(f"MACD hist {macd_hist:+.4f}≤0")
-    return (f"{display_symbol} ${price:,.2f} | RSI {r:.0f} | "
-            f"MA20 {ma20:,.0f}/{ma50:,.0f} {trend} | MACD {macd_hist:+.4f} | wait ({', '.join(miss)})")
+        miss.append(f"MACD {macd_hist:+.4f}≤0")
+    return (f"⏳ {display_symbol}  —  ${price:,.2f}\n"
+            f"    RSI {r:.0f} · MA20 {trend} · MACD {macd_hist:+.4f}\n"
+            f"    wait: {' , '.join(miss)}")
 
 
 # --------------------------------------------------------------------------- #
@@ -419,7 +423,7 @@ def main():
     for sym, gid in ASSETS.items():
         closes, source = fetch_hourly_closes(sym, gid)
         if not closes:
-            status_lines.append(f"{sym}: price fetch failed (all sources)")
+            status_lines.append(f"⚠️ {sym}  —  price fetch failed")
             continue
         last_prices[sym] = closes[-1]
         if stop:
@@ -456,14 +460,17 @@ def main():
     n_trades = len([t for t in state["trades"] if t["side"] == "SELL"])
     wins = len([t for t in state["trades"] if t["side"] == "SELL" and t["pnl"] > 0])
 
-    header = "🏁 TEST ENDED\n" if stop else f"📟 Hourly check #{state['runs']}\n"
+    divider = "━━━━━━━━━━━━━━━━━━━━"
+    header = "🏁 TEST ENDED" if stop else f"📟 Hourly Check #{state['runs']}"
     summary = (
-        header +
-        f"{now:%Y-%m-%d %H:%M} UTC\n\n" +
-        "\n".join(status_lines) +
-        f"\n\n💼 Equity: ${equity:,.2f}\n"
-        f"📈 Total P&L: ${total_pnl:,.2f} ({total_pct:+.2f}%)\n"
-        f"🔁 Closed trades: {n_trades} (wins: {wins})\n"
+        f"{header}\n"
+        f"🕐 {now:%Y-%m-%d %H:%M} UTC\n"
+        f"{divider}\n\n" +
+        "\n\n".join(status_lines) +
+        f"\n\n{divider}\n"
+        f"💼 Equity: ${equity:,.2f}\n"
+        f"📈 P&L: ${total_pnl:,.2f} ({total_pct:+.2f}%)\n"
+        f"🔁 Closed: {n_trades} (wins: {wins})\n"
         f"📊 Open: {', '.join(state['positions']) or 'none'}"
     )
     send_telegram(summary)
