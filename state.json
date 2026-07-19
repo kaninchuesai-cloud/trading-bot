@@ -1,9 +1,41 @@
 {
   "start_balance": 1000.0,
-  "balance": 1000.0,
-  "positions": {},
-  "trades": [],
+  "balance": 810.0,
+  "positions": {
+    "BTCUSDT": {
+      "entry": 64381.236401374365,
+      "amount": 0.0015532475856252005,
+      "opened": "2026-07-19T19:59:24.178472+00:00"
+    },
+    "ETHUSDT": {
+      "entry": 1860.1034803654181,
+      "amount": 0.0483844049269342,
+      "opened": "2026-07-19T19:59:25.898815+00:00"
+    }
+  },
+  "trades": [
+    {
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "price": 64381.236401374365,
+      "amount": 0.0015532475856252005,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "reason": "SCALP: RSI 46 + MACD +4.0032 + pullback",
+      "time": "2026-07-19T19:59:24.178508+00:00"
+    },
+    {
+      "symbol": "ETHUSDT",
+      "side": "BUY",
+      "price": 1860.1034803654181,
+      "amount": 0.0483844049269342,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "reason": "SCALP: RSI 47 + MACD +0.4786 + pullback",
+      "time": "2026-07-19T19:59:25.898843+00:00"
+    }
+  ],
   "started_at": "2026-07-19T00:00:00+00:00",
-  "runs": 9,
+  "runs": 10,
   "final_done": false
 }
