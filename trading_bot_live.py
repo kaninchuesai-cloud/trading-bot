@@ -310,6 +310,48 @@ def evaluate(display_symbol, closes, state):
 
 
 # --------------------------------------------------------------------------- #
+# Weekly Report (summarize all trades from the week)
+# --------------------------------------------------------------------------- #
+def gen_weekly_summary(state):
+    """Generate a summary report of trades from the past week."""
+    trades = state.get("trades", [])
+    closed_trades = [t for t in trades if t["side"] == "SELL"]
+
+    if not closed_trades:
+        return None
+
+    wins = [t for t in closed_trades if t["pnl"] > 0]
+    losses = [t for t in closed_trades if t["pnl"] < 0]
+    total_pnl = sum(t["pnl"] for t in closed_trades)
+
+    # Group by exit reason
+    by_reason = {}
+    for t in closed_trades:
+        reason = t.get("reason", "unknown")
+        if reason not in by_reason:
+            by_reason[reason] = {"trades": 0, "wins": 0, "pnl": 0.0}
+        by_reason[reason]["trades"] += 1
+        if t["pnl"] > 0:
+            by_reason[reason]["wins"] += 1
+        by_reason[reason]["pnl"] += t["pnl"]
+
+    # Build report
+    lines = ["📊 **WEEKLY TRADING SUMMARY**", ""]
+    lines.append(f"Total Closed Trades: {len(closed_trades)}")
+    lines.append(f"Wins: {len(wins)} | Losses: {len(losses)}")
+    lines.append(f"Win Rate: {len(wins)/len(closed_trades)*100:.0f}%")
+    lines.append(f"Total P&L: ${total_pnl:+,.2f}")
+    lines.append("")
+
+    lines.append("**By Exit Reason:**")
+    for reason, stats in sorted(by_reason.items(), key=lambda x: -x[1]["pnl"]):
+        wr = stats["wins"] / stats["trades"] * 100 if stats["trades"] > 0 else 0
+        lines.append(f"• {reason}: {stats['trades']} trades | {wr:.0f}% wins | ${stats['pnl']:+,.2f}")
+
+    return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- #
 # Main (one evaluation per run)
 # --------------------------------------------------------------------------- #
 def main():
@@ -373,6 +415,13 @@ def main():
         f"📊 Open: {', '.join(state['positions']) or 'none'}"
     )
     send_telegram(summary)
+
+    # Send weekly summary on Monday mornings
+    if now.weekday() == 0 and 8 <= now.hour < 9:  # Monday 08:00-09:00 UTC
+        weekly = gen_weekly_summary(state)
+        if weekly:
+            send_telegram(weekly)
+
     save_state(state)
 
 
