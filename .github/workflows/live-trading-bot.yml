@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 * * * *'   # every hour, on the hour (UTC)
   workflow_dispatch:
+  push:
+    branches: [ main ]    # code pushes nudge the run; state commits use [skip ci]
 
 permissions:
   contents: write
