@@ -1,9 +1,81 @@
 {
   "start_balance": 1000.0,
-  "balance": 1000.0,
-  "positions": {},
-  "trades": [],
+  "balance": 810.7066829321161,
+  "positions": {
+    "XAUUSD": {
+      "entry": 3999.5,
+      "amount": 0.025024939319023404,
+      "opened": "2026-07-19T22:37:19.232170+00:00"
+    },
+    "NG": {
+      "entry": 2.88700008392334,
+      "amount": 31.2014262927824,
+      "opened": "2026-07-19T22:37:25.608114+00:00"
+    }
+  },
+  "trades": [
+    {
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "price": 64381.236401374365,
+      "amount": 0.0015532475856252005,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "reason": "SCALP: RSI 46 + MACD +4.0032 + pullback",
+      "time": "2026-07-19T19:59:24.178508+00:00"
+    },
+    {
+      "symbol": "ETHUSDT",
+      "side": "BUY",
+      "price": 1860.1034803654181,
+      "amount": 0.0483844049269342,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "reason": "SCALP: RSI 47 + MACD +0.4786 + pullback",
+      "time": "2026-07-19T19:59:25.898843+00:00"
+    },
+    {
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "price": 64684.363646996055,
+      "amount": 0.0015532475856252005,
+      "pnl": 0.4708316623991067,
+      "pnl_pct": 0.4708316623991182,
+      "reason": "hit resistance",
+      "time": "2026-07-19T22:37:15.833607+00:00"
+    },
+    {
+      "symbol": "ETHUSDT",
+      "side": "SELL",
+      "price": 1868.40401444346,
+      "amount": 0.0483844049269342,
+      "pnl": 0.40161640194179427,
+      "pnl_pct": 0.4462404466019976,
+      "reason": "hit resistance",
+      "time": "2026-07-19T22:37:17.548938+00:00"
+    },
+    {
+      "symbol": "XAUUSD",
+      "side": "BUY",
+      "price": 3999.5,
+      "amount": 0.025024939319023404,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "reason": "SCALP: RSI 47 + MACD +0.1719 + pullback",
+      "time": "2026-07-19T22:37:19.232186+00:00"
+    },
+    {
+      "symbol": "NG",
+      "side": "BUY",
+      "price": 2.88700008392334,
+      "amount": 31.2014262927824,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "reason": "SCALP: RSI 49 + MACD +0.0009 + pullback",
+      "time": "2026-07-19T22:37:25.608129+00:00"
+    }
+  ],
   "started_at": "2026-07-19T00:00:00+00:00",
-  "runs": 7,
+  "runs": 11,
   "final_done": false
 }
