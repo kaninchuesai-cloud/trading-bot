@@ -1,13 +1,7 @@
 {
   "start_balance": 1000.0,
-  "balance": 910.8031536653151,
-  "positions": {
-    "XAGUSD": {
-      "entry": 56.66999816894531,
-      "amount": 1.6041606034614997,
-      "opened": "2026-07-20T20:55:57.783526+00:00"
-    }
-  },
+  "balance": 1001.5104120507398,
+  "positions": {},
   "trades": [
     {
       "symbol": "BTCUSDT",
@@ -118,9 +112,19 @@
       "pnl_pct": 1.6514715027913907,
       "reason": "take profit +1.7%",
       "time": "2026-07-20T20:56:01.953535+00:00"
+    },
+    {
+      "symbol": "XAGUSD",
+      "side": "SELL",
+      "price": 56.54499816894531,
+      "amount": 1.6041606034614997,
+      "pnl": -0.20052007543269212,
+      "pnl_pct": -0.22057526740577593,
+      "reason": "test period ended",
+      "time": "2026-07-21T00:15:42.016868+00:00"
     }
   ],
   "started_at": "2026-07-19T00:00:00+00:00",
-  "runs": 15,
-  "final_done": false
+  "runs": 16,
+  "final_done": true
 }
